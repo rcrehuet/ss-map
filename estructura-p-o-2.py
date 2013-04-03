@@ -166,7 +166,7 @@ def stride(name):
 
 def count (data, struct):
 	"""
-	
+	This function count how many aminoacids are in a given structure in a row.
 	"""
 	mat = np.zeros([len(data), len(data)+1])
 	a=[]
@@ -184,6 +184,9 @@ def count (data, struct):
 	return mat
 
 def images (percentages, structure):
+	"""
+	This function generates all the images except the one with multiple temperatures.
+	"""
 	fig = pl.figure(structure)
 	ax = fig.add_subplot(111)
 	cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], cmap = args.cm)
