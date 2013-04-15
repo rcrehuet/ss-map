@@ -261,9 +261,9 @@ parser.add_argument("-polyproline", "-ppii", action = "store_true", default = Fa
 parser.add_argument("-stride", "-st", nargs = '+', default = False,
 					help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
 parser.add_argument("-save_figure","-sf", nargs = "+", default = False,
-					help = "The complete path where the figure/s will be saved (including  prefix, see documentation for more details).")
+					help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
 parser.add_argument("-save_numpy","-sn", nargs = "+", default = False,
-					help = "The complete path to save the numpy/s array.")
+					help = "The path to save the numpy/s array.")
 parser.add_argument("-structure_definition", "-sd", choices=["profasi","pappu","blackledge"],
 					default="blackledge",
 					help = "Which regions definition you want to use: ''profasi, 'pappu' or 'blackledge'. by default 'blackledge'.\nYou can define you own region with the customizer_region option.")
