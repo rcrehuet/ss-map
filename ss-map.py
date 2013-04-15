@@ -286,7 +286,7 @@ parser.add_argument("-w","-weights", default = False, nargs = '+',
 parser.add_argument("-cm","-color_map", default = "jet", choices = ['jet','binary'],
 					help = "This option specifies the colormap to plot the images for black and white the option should be: binary.")
 parser.add_argument("-customized_region", "-cr", default = False, nargs = 5,
-					help = "This option defines a customized region in the Ramachandran Plot.\nUsage = -cr  Structure  phi0 phi1 psi0 psi1.\nWhere Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angle.")
+					help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angle.")
 
 global args
 args = parser.parse_args()
@@ -335,6 +335,7 @@ elif args.structure_definition == "pappu":
 	all_structure = np.asarray([pappu(data) for data in all_data])
 elif args.customized_region:
 	all_structure = np.asarray([custom(data) for data in all_data])
+	args.structure_definition = 'customized'
 
 if args.stride:
 	"""Calculating stride"""
@@ -399,7 +400,7 @@ if args.customized_region:
 	if figures:
 		images(custom_percentage, "custom region")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-custom-conformation-percentage-%s-definition"%args.structure_definition, d_custom[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+"-%s-percentage-%s-definition"%(args.customized_region[0], args.structure_definition), d_custom[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if args.hr and figures:
 	try:
