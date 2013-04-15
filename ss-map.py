@@ -280,13 +280,13 @@ parser.add_argument("-txt", default = False,
 parser.add_argument("-temp","-temperature", default = False, nargs = '+',
 					help = "This option set the temperatures shown in the y axe.")
 parser.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
-					help = "This option sets the minimum and maximum percentage shown in the resulting figure.")
+					help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 parser.add_argument("-w","-weights", default = False, nargs = '+',
 					help = "This option specifies the complete path to the weights file.")
 parser.add_argument("-cm","-color_map", default = "jet", choices = ['jet','binary'],
 					help = "This option specifies the colormap to plot the images for black and white the option should be: binary.")
 parser.add_argument("-customized_region", "-cr", default = False, nargs = 5,
-					help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angle.")
+					help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angles.")
 
 global args
 args = parser.parse_args()
