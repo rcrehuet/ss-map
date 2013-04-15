@@ -23,6 +23,7 @@ of the Standard Library
 import argparse
 import subprocess as subp
 import glob
+import math
 
 def profasi(data):
 	"""
@@ -209,6 +210,45 @@ def images (percentages, structure):
 		pl.savefig("%s-estructura-%s-%s definition"%(args.save_figure[0],structure,args.structure_definition))
 	return
 
+def degrees(rad_angle) :
+	"""Converts any angle in radians to degrees.
+
+	If the input is None, the it returns None.
+	For numerical input, the output is mapped to [-180,180]
+	"""
+	if rad_angle is None :
+		return None
+	angle = rad_angle * 180 / math.pi
+	while angle > 180 :
+		angle = angle - 360
+	while angle < -180 :
+		angle = angle + 360
+	return angle
+
+def angles_calcul (pdb_code):
+	import Bio.PDB
+	structure = Bio.PDB.PDBParser().get_structure(pdb_code, "%s.pdb" % pdb_code)
+	angles = []
+	for model in structure :
+		for chain in model :
+			#print "Chain %s" % str(chain.id)
+			polypeptides = Bio.PDB.CaPPBuilder().build_peptides(chain)
+			for poly_index, poly in enumerate(polypeptides) :
+				phi_psi = poly.get_phi_psi_list()
+				for res_index, residue in enumerate(poly) :
+					phi, psi = phi_psi[res_index]
+					if phi and psi :
+						#Don't write output when missing an angle
+						angles.append([degrees(phi), degrees(psi)])
+	return np.asarray(angles)
+
+def pdb_npy (folder):
+	filelist = glob.glob(folder + '*.pdb')
+	filelist.sort()
+	dat = []
+	for filename in filelist: dat.append(angles_calcul(filename[:-4]))
+	return dat
+
 #Defining the arguments:
 parser = argparse.ArgumentParser(description="Get the secondary structure from the phi and psi angles.")
 parser.add_argument("files", help="The .npy file with the angles or a folder with the PDB files to calculate the angles.")
@@ -260,16 +300,10 @@ global all_data
 if args.files.split(".")[-1] == "npy":
 	all_data = np.load(args.files)
 elif args.files.split("/")[-1] == "":
-	try: import pdb_npy_array_distribution as funct
-	except ImportError: 
-		print "If you do not have the program pdb_npy_array.py in the same directory you cannot use this option."
-	else:
-		all_data = np.asarray(funct.pdb_npy(args.files))
+	all_data = np.asarray(pdb_npy(args.files))
 else:
-	print "Incorrect data type"
+	print "Incorrect data type.\nThis program only takes as valid input a numpy array or a folder with multple PDB files."
 	sys.exit()
-
-
 
 global weights
 if args.w:
@@ -379,9 +413,9 @@ if args.hr and figures:
 	#pl.title("% Alpha-helix", fontsize =12)
 	pl.xlim(1,d_alpha.shape[0])
 	if args.save_figure:
-		pl.savefig(args.save[0]+"-tant-per-cent-helix-per-residue-%s-definition"%args.structure_definition)
+		pl.savefig(args.save[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-tant-per-cent-helix-per-residue-%s-definition"%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+		np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
 
 if args.hgt:
 	all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
@@ -429,7 +463,7 @@ if args.hgt:
 		ax.grid()
 		fig.show()
 	if args.save_figure:
-		pl.savefig("%s-tant-per-cent-helix-per-group-and-temperature-%s"%(args.save_figure[0],args.structure_definition))
+		pl.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"%(args.save_figure[0],args.structure_definition))
 	if args.save_numpy:
 		np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
