@@ -276,7 +276,7 @@ parser.add_argument("-hr","-helix-per-residue", action = "store_true", default =
 parser.add_argument("-hgt","-helix-per-group", action = "store_true", default = False,
 					help = "When present the program draws the alpha helix region length per residue and temperature.")
 parser.add_argument("-txt", default = False,
-					help = "When present the program will save the percentages in a .txt file. It should indicate the complete path to save the file.")
+					help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the file.")
 parser.add_argument("-temp","-temperature", default = False, nargs = '+',
 					help = "This option set the temperatures shown in the y axe.")
 parser.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
@@ -473,21 +473,21 @@ if args.txt and (args.stride or args.alpha or args.beta or args.polyproline or a
 	if args.stride:
 		try:
 			stride_alpha_percentage
-			np.savetxt(args.txt+"ss-map-stride-alpha-percentage.txt",stride_alpha_percentage,fmt = '%4f')
+			np.savetxt(args.txt+"ss-map-stride-alpha-percentage-%s-definition.txt"%args.structure_definition,stride_alpha_percentage,fmt = '%4f')
 		except NameError: pass
 		try:
 			stride_beta_percentage
-			np.savetxt(args.txt+"ss-map-stride-beta-percentage.txt",stride_beta_percentage,fmt = '%4f')
+			np.savetxt(args.txt+"ss-map-stride-beta-percentage-%s-definition.txt"%args.structure_definition,stride_beta_percentage,fmt = '%4f')
 		except NameError: pass
 	if args.alpha:
-		np.savetxt(args.txt+"ss-map-alpha-percentage.txt",alpha_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-alpha-percentage%s-definition.txt"%args.structure_definition,alpha_percentage,fmt = '%4f')
 	if args.beta:
-		np.savetxt(args.txt+"ss-map-beta-percentage.txt",beta_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-beta-percentage%s-definition.txt"%args.structure_definition,beta_percentage,fmt = '%4f')
 	if args.polyproline:
-		np.savetxt(args.txt+"ss-map-polyproline-percentage.txt",ppii_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-polyproline-percentage%s-definition.txt"%args.structure_definition,ppii_percentage,fmt = '%4f')
 	if args.hr:
 		d_hr = alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1)
-		np.savetxt(args.txt+"ss-map-helix-per-residue.txt",d_hr,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-helix-per-residue%s-definition.txt"%args.structure_definition,d_hr,fmt = '%4f')
 elif args.txt and not (args.stride or args.alpha or args.beta or args.polyproline or args.hr or args.hrt or args.hgt):
 	 print "You have calculated nothing."
 
