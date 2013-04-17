@@ -1,6 +1,8 @@
 # Licensed under the terms of the Apache Software License 2.0:
 #  http://www.apache.org/licenses/LICENSE-2.0
 
+#!/usr/bin/env python
+
 """
 The numpy library is required. But he pylab library is 
 optional, if it is not present no images will be generated
@@ -333,7 +335,7 @@ elif args.structure_definition == "profasi":
 	all_structure = np.asarray([profasi(data) for data in all_data])
 elif args.structure_definition == "pappu":
 	all_structure = np.asarray([pappu(data) for data in all_data])
-elif args.customized_region:
+if args.customized_region:
 	all_structure = np.asarray([custom(data) for data in all_data])
 	args.structure_definition = 'customized'
 
