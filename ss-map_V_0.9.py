@@ -1,9 +1,27 @@
 #!/usr/bin/env python
 # Licensed under the terms of the GNU GPL v3:
 #  http://www.gnu.org/licenses/gpl.html
+#
+#============================ SS-map ==================================
+# ss-map is a Python program to visualize the proteins ensembles 
+# secondary structure
+#======================================================================
+#
+# Authors:
+# Jelisa Iglesias
+# Ramon Crehuet
+#======================================================================
+# For more information visit:
+# http://code.google.com/p/ss-map
+#
+# This work is done by the Theoretical and Computational Group
+# of the IQAC (CSIC)
+# http://iqac.csic.es/qteor
+#
 
 
 """
+
 The numpy library is required. But he pylab library is 
 optional, if it is not present no images will be generated
 and the information will be saved in a .txt file
@@ -26,6 +44,8 @@ import argparse
 import subprocess as subp
 import glob
 import math
+from matplotlib.ticker import FuncFormatter
+
 
 def profasi(data):
 	"""
@@ -193,6 +213,20 @@ def images (percentages, structure):
 	"""
 	This function generates all the images except the one with multiple temperatures.
 	"""
+	def xformat(x, pos):
+		"""
+		Format the length of the fragment, as an integer starting by 1
+		"""
+		return '%d' % (x+1,)
+
+	def yformat(y, pos):
+		"""
+		Format the the residue number
+		"""	
+		return '%d' % (y+starting_residue,)
+	
+	xformatter = FuncFormatter(xformat)
+	yformatter = FuncFormatter(yformat)
 	fig = pl.figure(structure)
 	ax = fig.add_subplot(111)
 	cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], cmap = args.cm)
@@ -200,12 +234,8 @@ def images (percentages, structure):
 	fig.colorbar(cs)
 	(ydim, xdim) =percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
 	starting_residue=args.residues[0]+2
-	xticks_spacing=int(ax.get_xticks()[1]-ax.get_xticks()[0])
-	yticks_spacing=int(ax.get_yticks()[1]-ax.get_yticks()[0])
-	xlabels=["",]+[x for x in range(1,xdim+1, xticks_spacing)]+["",]
-	ylabels=["",]+[y+starting_residue for y in range(0,ydim, yticks_spacing)]+["",]
-	ax.set_xticklabels(xlabels)
-	ax.set_yticklabels(ylabels)
+	ax.yaxis.set_major_formatter(yformatter)
+	ax.xaxis.set_major_formatter(xformatter)
 	ax.grid()
 	fig.show()
 	if args.save_figure:
