@@ -1,10 +1,20 @@
 #!/usr/bin/env python
-# Licensed under the terms of the GNU GPL v3:
-#  http://www.gnu.org/licenses/gpl.html
 #
 #============================ SS-map ==================================
 # ss-map is a Python program to visualize the proteins ensembles 
-# secondary structure
+# secondary structure.
+# ss-map is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# ss-map is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with ss-map.  If not, see <http://www.gnu.org/licenses/>.
+# Written by: Jelisa Iglesias.
+#
 #======================================================================
 #
 # Authors:
