@@ -357,6 +357,10 @@ if args.files.split(".")[-1] == "npy":
 	all_data = np.load(args.files)
 elif args.files.split("/")[-1] == "":
 	all_data = np.asarray(pdb_npy(args.files))
+	if not all_data:
+		print 'The folder has no pdb files.'
+		print 'Exiting the program.'
+		sys.exit()
 else:
 	print "Incorrect data type.\nThis program only takes as valid input a numpy array or a folder with multple PDB files."
 	sys.exit()
