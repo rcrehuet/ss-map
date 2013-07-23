@@ -367,14 +367,14 @@ else:
 
 global weights
 if args.w:
-	type = args.w.split(".")[-1]
-	if type == "txt":
+	typo = args.w[0].split(".")[-1]
+	if typo == "txt":
 		weights = np.loadtxt(args.w)
-	elif type == "npy" or type == "npz":
+	elif typo == "npy" or typo == "npz":
 		weights = np.load(args.w)
 	else:
 		print "This program only takes the weights from a .txt file or a .npy file"
-	if temporary.shape[0] != all_data.shape[0]:
+	if weights.shape[0] != all_data.shape[0]:
 		print "The number of weights and the number of structures do not match."
 		sys.exit()
 	weights /= weights.sum()
