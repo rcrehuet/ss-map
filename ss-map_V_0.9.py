@@ -227,7 +227,7 @@ def images (percentages, structure):
 		"""
 		Format the length of the fragment, as an integer starting by 1
 		"""
-		return '%d' % (x+1,)
+		return '%d' % (x+starting_group,)
 
 	def yformat(y, pos):
 		"""
@@ -239,11 +239,13 @@ def images (percentages, structure):
 	yformatter = FuncFormatter(yformat)
 	fig = pl.figure(structure)
 	ax = fig.add_subplot(111)
-	cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], cmap = args.cm)
+	cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], \
+	cmap = args.cm)
 	if args.rgc: cs.set_clim(args.rgc[0],args.rgc[1])
 	fig.colorbar(cs)
 	(ydim, xdim) =percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
 	starting_residue=args.residues[0]+2
+	starting_group=args.groups[0]
 	ax.yaxis.set_major_formatter(yformatter)
 	ax.xaxis.set_major_formatter(xformatter)
 	ax.grid()
@@ -310,7 +312,7 @@ ramachandran_regions.add_argument("-customized_region", "-cr", default = False, 
 					help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angles.")
 
 stride2 = parser.add_argument_group("STRIDE", "The command that calls the external program STRIDE.")
-stride2.add_argument("-stride", "-st", nargs = '+', default = False,
+stride2.add_argument("-stride", "-st", default = False,
 					help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
 
 images_properties = parser.add_argument_group("Images properties","The commands to change the images properties.")
@@ -319,13 +321,13 @@ images_properties.add_argument("-cm","-color_map", default = "jet", choices = ['
 images_properties.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
 					help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 data_properties = parser.add_argument_group("Data properties","The commands to change the data shown.")
-data_properties.add_argument("-groups","-g", type = int, nargs = "+", default = False,
+data_properties.add_argument("-groups","-g", type = int, nargs = 2, default = False,
 					help = "The initial and the final groups to show. The default values are all groups except the group zero (which indicates the aminoacids without the desired conformation).")
-data_properties.add_argument("-residues","-r", type = int, nargs = "+", default = False,
+data_properties.add_argument("-residues","-r", type = int, nargs = 2, default = False,
 					help = "The initial and the final residues to show. By default all the residues are shown excep the first one and the last one (for more details see documentation).")
 
 ensemble_weights = parser.add_argument_group("Ensemble weights","The commands to specify the ensembles weights.")
-ensemble_weights.add_argument("-w","-weights", default = False, nargs = '+',
+ensemble_weights.add_argument("-w","-weights", default = False,
 					help = "This option specifies the complete path to the weights file.")
 
 other_plots = parser.add_argument_group("Other plots", "The commands to generate other plots.")
@@ -367,7 +369,7 @@ else:
 
 global weights
 if args.w:
-	typo = args.w[0].split(".")[-1]
+	typo = args.w.split(".")[-1]
 	if typo == "txt":
 		weights = np.loadtxt(args.w)
 	elif typo == "npy" or typo == "npz":
@@ -378,12 +380,16 @@ if args.w:
 		print "The number of weights and the number of structures do not match."
 		sys.exit()
 	weights /= weights.sum()
+	weights *= len(weights)
 else:
 	weights = np.ones(all_data.shape[0])
 
 if not args.residues: args.residues = [0,all_data.shape[1]]
 else: args.residues = [args.residues[0]-2,args.residues[1]-1]
-if not args.groups: args.groups = [1,all_data.shape[1]+1]
+if args.groups:
+	args.groups[-1] += 1
+else: 
+	args.groups = [1,all_data.shape[1]+1]
 
 aminoacids = all_data.shape[1]
 global all_structure
@@ -411,24 +417,28 @@ if args.stride:
 		else: alfa = True
 		if alfa:
 			d_stride_alpha = np.zeros([all_structure_stride.shape[1], all_structure_stride.shape[1]+1])
-			for structure in all_structure_stride: d_stride_alpha = d_stride_alpha + count(structure,"alpha")
+			for structure in all_structure_stride: d_stride_alpha = d_stride_alpha + \
+			  count(structure,"alpha")
 			stride_alpha_percentage = d_stride_alpha/all_structure_stride.shape[0]
 			if figures:
 				images(stride_alpha_percentage, "stride-alpha")
 			if args.save_numpy:
-				np.save(args.save_numpy[0]+"-stride-beta-strand-percentage", d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+				np.save(args.save_numpy[0]+"-stride-beta-strand-percentage", \
+				d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 		beta = False
 		try: args.stride[1] == 'beta' or args.stride[2] == 'beta'
 		except IndexError: pass
 		else: beta = True
 		if beta:
 			d_stride_beta = np.zeros([all_structure_stride.shape[1], all_structure_stride.shape[1]+1])
-			for structure in all_structure_stride: d_stride_beta = d_stride_beta + count(structure,"beta")
+			for structure in all_structure_stride: d_stride_beta = d_stride_beta + \
+			  count(structure,"beta")
 			stride_beta_percentage = d_stride_beta/all_structure_stride.shape[0]
 			if figures:
 				images(stride_beta_percentage, "stride-beta")
 			if args.save_numpy:
-				np.save(args.save_numpy[0]+"-stride-alpha-helix-percentage", d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+				np.save(args.save_numpy[0]+"-stride-alpha-helix-percentage", \
+				 d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if args.alpha:
 	d_alpha = np.zeros([aminoacids, aminoacids+1])
@@ -438,7 +448,9 @@ if args.alpha:
 	if figures:
 		images(alpha_percentage, "alpha")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-alpha-helix-percentage-%s-definition"%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+"-alpha-helix-percentage-%s-definition"\
+		%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], \
+		args.groups[0]:args.groups[1]])
 
 if args.beta:
 	d_beta = np.zeros([aminoacids, aminoacids+1])
@@ -448,7 +460,9 @@ if args.beta:
 	if figures:
 		images(beta_percentage, "beta")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-beta-strand-percentage-%s-definition"%args.structure_definition, d_beta[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+"-beta-strand-percentage-%s-definition"\
+		%args.structure_definition, d_beta[args.residues[0]:args.residues[1],\
+		args.groups[0]:args.groups[1]])
 
 if args.polyproline:
 	d_ppii = np.zeros([aminoacids, aminoacids+1])
@@ -458,7 +472,8 @@ if args.polyproline:
 	if figures:
 		images(ppii_percentage, "polyprolineII")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"polyproline-percentage", d_ppii[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+"polyproline-percentage", \
+		d_ppii[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if args.customized_region:
 	d_custom = np.zeros([aminoacids, aminoacids+1])
@@ -468,7 +483,9 @@ if args.customized_region:
 	if figures:
 		images(custom_percentage, "custom region")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-%s-percentage-%s-definition"%(args.customized_region[0], args.structure_definition), d_custom[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+"-%s-percentage-%s-definition"%\
+		(args.customized_region[0], args.structure_definition), \
+		d_custom[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if args.hr and figures:
 	try:
@@ -482,9 +499,12 @@ if args.hr and figures:
 	#pl.title("% Alpha-helix", fontsize =12)
 	pl.xlim(1,d_alpha.shape[0])
 	if args.save_figure:
-		pl.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
+		pl.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"\
+		%args.structure_definition)
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+		np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"\
+		%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], \
+		args.groups[0]:args.groups[1]].sum(axis=1))
 
 if args.hgt:
 	all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
@@ -535,9 +555,11 @@ if args.hgt:
 		ax.grid()
 		fig.show()
 	if args.save_figure:
-		pl.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"%(args.save_figure[0],args.structure_definition))
+		pl.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"\
+		%(args.save_figure[0],args.structure_definition))
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', \
+		d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if figures: pl.show()
 else: args.txt = True
@@ -546,21 +568,28 @@ if args.txt and (args.stride or args.alpha or args.beta or args.polyproline or a
 	if args.stride:
 		try:
 			stride_alpha_percentage
-			np.savetxt(args.txt+"ss-map-stride-alpha-percentage-%s-definition.txt"%args.structure_definition,stride_alpha_percentage,fmt = '%4f')
+			np.savetxt(args.txt+"ss-map-stride-alpha-percentage-%s-definition.txt"\
+			%args.structure_definition,stride_alpha_percentage,fmt = '%4f')
 		except NameError: pass
 		try:
 			stride_beta_percentage
-			np.savetxt(args.txt+"ss-map-stride-beta-percentage-%s-definition.txt"%args.structure_definition,stride_beta_percentage,fmt = '%4f')
+			np.savetxt(args.txt+"ss-map-stride-beta-percentage-%s-definition.txt"\
+			%args.structure_definition,stride_beta_percentage,fmt = '%4f')
 		except NameError: pass
 	if args.alpha:
-		np.savetxt(args.txt+"ss-map-alpha-percentage%s-definition.txt"%args.structure_definition,alpha_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-alpha-percentage%s-definition.txt"\
+		%args.structure_definition,alpha_percentage,fmt = '%4f')
 	if args.beta:
-		np.savetxt(args.txt+"ss-map-beta-percentage%s-definition.txt"%args.structure_definition,beta_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-beta-percentage%s-definition.txt"\
+		%args.structure_definition,beta_percentage,fmt = '%4f')
 	if args.polyproline:
-		np.savetxt(args.txt+"ss-map-polyproline-percentage%s-definition.txt"%args.structure_definition,ppii_percentage,fmt = '%4f')
+		np.savetxt(args.txt+"ss-map-polyproline-percentage%s-definition.txt"\
+		%args.structure_definition,ppii_percentage,fmt = '%4f')
 	if args.hr:
 		d_hr = alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1)
-		np.savetxt(args.txt+"ss-map-helix-per-residue%s-definition.txt"%args.structure_definition,d_hr,fmt = '%4f')
-elif args.txt and not (args.stride or args.alpha or args.beta or args.polyproline or args.hr or args.hrt or args.hgt):
+		np.savetxt(args.txt+"ss-map-helix-per-residue%s-definition.txt"\
+		%args.structure_definition,d_hr,fmt = '%4f')
+elif args.txt and not (args.stride or args.alpha or args.beta or args.polyproline \
+   or args.hr or args.hrt or args.hgt):
 	 print "You have calculated nothing."
 
