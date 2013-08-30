@@ -240,7 +240,7 @@ def images (percentages, structure):
 	fig = pl.figure(structure)
 	ax = fig.add_subplot(111)
 	cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], \
-	cmap = args.cm)
+	cmap = args.cm, vmin =0.0, vmax=0.03)
 	if args.rgc: cs.set_clim(args.rgc[0],args.rgc[1])
 	fig.colorbar(cs)
 	(ydim, xdim) =percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
