@@ -545,7 +545,10 @@ if args.hgt:
 		cb=fig.colorbar(cs)
 		cb.set_ticks(np.linspace(0,np.round(d[:,1:].max(),decimals = 2), 11))
 		(ydim, xdim) =d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
+<<<<<<< .mine
+=======
 		starting_residue=2
+>>>>>>> .r117
 		xticks_spacing=int(ax.get_xticks()[1]-ax.get_xticks()[0])
 		yticks_spacing=int(ax.get_xticks()[1]-ax.get_yticks()[0])
 		ax.grid()
