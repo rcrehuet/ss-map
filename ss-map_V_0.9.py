@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #============================ SS-map ==================================
-# ss-map is a Python program to visualize the proteins ensembles 
+# ss-map is a Python program to visualize the proteins ensembles
 # secondary structure.
 # ss-map is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 """
 
-The numpy library is required. But he pylab library is 
+The numpy library is required. But he pylab library is
 optional, if it is not present no images will be generated
 and the information will be saved in a .txt file
 """
@@ -246,14 +246,18 @@ def images (percentages, structure):
 	fig.colorbar(cs)
 	(ydim, xdim) =percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
 	starting_residue=args.residues[0]+2
-	starting_group=args.groups[0]
+	starting_group = args.groups[0]
 	ax.yaxis.set_major_formatter(yformatter)
 	ax.xaxis.set_major_formatter(xformatter)
 	ax.grid()
 	fig.show()
 	if args.save_figure:
-		pl.savefig("%s-estructura-%s-%s definition"%(args.save_figure[0],structure,args.structure_definition))
+		pl.savefig("%s-%s-estructure-%s-definition"%(args.save_figure,structure,args.structure_definition))
 	return
+
+def numpys (structure, results):
+	np.save("%s-%s-percentage-%s-definition"%(args.save_numpy,structure,args.structure_definition),
+			 results[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 def degrees(rad_angle) :
 	"""Converts any angle in radians to degrees.
@@ -296,7 +300,6 @@ def pdb_npy (folder):
 #Defining the arguments:
 parser = argparse.ArgumentParser(description="Get the secondary structure from the phi and psi angles.")
 parser.add_argument("files", help="The .npy file with the angles or a folder with the PDB files to calculate the angles.")
-
 conformations = parser.add_argument_group("conformations", "All the predefined accepted conformations.")
 conformations.add_argument("-alpha", "-a", action = "store_true", default = False,
 					help="When present  the alpha  helix region will be studied.")
@@ -304,7 +307,6 @@ conformations.add_argument("-beta", "-b", action = "store_true", default = False
 					help="When present  the beta strand  region will be studied.")
 conformations.add_argument("-polyproline", "-ppii", action = "store_true", default = False,
 					help="When present  the polyproline II helix  region will be studied..")
-
 ramachandran_regions = parser.add_argument_group("Ramachandran regions", "The commands to set the ramachandran regions.")
 ramachandran_regions.add_argument("-structure_definition", "-sd", choices=["profasi","pappu","blackledge"],
 					default="blackledge",
@@ -340,12 +342,12 @@ other_plots.add_argument("-temp","-temperature", default = False, nargs = '+',
 					help = "This option set the temperatures shown in the y axe.")
 
 saving_the_results = parser.add_argument_group("Saving the results","Commands to save the data.")
-saving_the_results.add_argument("-save_figure","-sf", nargs = "+", default = False,
+saving_the_results.add_argument("-save_figure","-sf",  default = False,
 					help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
-saving_the_results.add_argument("-save_numpy","-sn", nargs = 1, default = False,
+saving_the_results.add_argument("-save_numpy","-sn",  default = False,
 					help = "The path to save the numpy/s array.")
 saving_the_results.add_argument("-txt", default = False,
-					help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the file.")
+					help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the files.")
 
 args = parser.parse_args()
 
@@ -373,7 +375,7 @@ if args.w:
 	elif typo == "npy" or typo == "npz":
 		weights = np.load(args.w)
 	else:
-		print "This program only takes the weights from a .txt file or a .npy file"
+		print "This program only takes the weights from a .txt file or a .npy file."
 	if weights.shape[0] != all_data.shape[0]:
 		print "The number of weights and the number of structures do not match."
 		sys.exit()
@@ -398,44 +400,40 @@ elif args.structure_definition == "pappu":
 	all_structure = np.asarray([pappu(data) for data in all_data])
 if args.customized_region:
 	all_structure = np.asarray([custom(data) for data in all_data])
-	args.structure_definition = 'customized'
+	args.structure_definition = "customized"
 
 if args.stride:
 	"""Calculating stride"""
 	pdb_list = glob.glob(args.stride[0]+"*.pdb")
 	if not pdb_list: print "Directory no valid: "+args.stride[0]
 	else:
+		alfa = False
+		beta = False
 		print "Calculating stride with the pdbs in directory: %s"%args.stride[0]
 		all_structure_stride = np.asarray([stride(pdb[:-4]) for pdb in pdb_list])
 		print "Stride completed"
-		alfa = False
 		try: args.stride[1] == 'alpha' or args.stride[2] == 'alpha'
 		except IndexError: pass
 		else: alfa = True
 		if alfa:
 			d_stride_alpha = np.zeros([all_structure_stride.shape[1], all_structure_stride.shape[1]+1])
-			for structure in all_structure_stride: d_stride_alpha = d_stride_alpha + \
-			  count(structure,"alpha")
+			for structure in all_structure_stride: d_stride_alpha = d_stride_alpha + count(structure,"alpha")
 			stride_alpha_percentage = d_stride_alpha/all_structure_stride.shape[0]
 			if figures:
-				images(stride_alpha_percentage, "stride-alpha")
+				images(stride_alpha_percentage, "stride-alpha-helix")
 			if args.save_numpy:
-				np.save(args.save_numpy[0]+"-stride-beta-strand-percentage", \
-				d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
-		beta = False
+				numpys("stride-alpha-helix", stride_alpha_percentage)
 		try: args.stride[1] == 'beta' or args.stride[2] == 'beta'
 		except IndexError: pass
 		else: beta = True
 		if beta:
 			d_stride_beta = np.zeros([all_structure_stride.shape[1], all_structure_stride.shape[1]+1])
-			for structure in all_structure_stride: d_stride_beta = d_stride_beta + \
-			  count(structure,"beta")
+			for structure in all_structure_stride: d_stride_beta = d_stride_beta + count(structure,"beta")
 			stride_beta_percentage = d_stride_beta/all_structure_stride.shape[0]
 			if figures:
-				images(stride_beta_percentage, "stride-beta")
+				images(stride_beta_percentage, "stride-beta-strand")
 			if args.save_numpy:
-				np.save(args.save_numpy[0]+"-stride-alpha-helix-percentage", \
-				 d_stride[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+				numpys("stride-beta-strand", stride_beta_percentage)
 
 if args.alpha:
 	d_alpha = np.zeros([aminoacids, aminoacids+1])
@@ -443,11 +441,9 @@ if args.alpha:
 		d_alpha += w*count(structure,"alpha")
 	alpha_percentage = d_alpha / all_structure.shape[0]
 	if figures:
-		images(alpha_percentage, "alpha")
+		images(alpha_percentage, "alpha-helix")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-alpha-helix-percentage-%s-definition"\
-		%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], \
-		args.groups[0]:args.groups[1]])
+		numpys("alpha-helix", alpha_percentage)
 
 if args.beta:
 	d_beta = np.zeros([aminoacids, aminoacids+1])
@@ -455,11 +451,9 @@ if args.beta:
 		d_beta += w*count(structure,"beta")
 	beta_percentage = d_beta / all_structure.shape[0]
 	if figures:
-		images(beta_percentage, "beta")
+		images(beta_percentage, "beta-strand")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-beta-strand-percentage-%s-definition"\
-		%args.structure_definition, d_beta[args.residues[0]:args.residues[1],\
-		args.groups[0]:args.groups[1]])
+		numpys("beta-strand", beta_percentage)
 
 if args.polyproline:
 	d_ppii = np.zeros([aminoacids, aminoacids+1])
@@ -467,10 +461,9 @@ if args.polyproline:
 		d_ppii += w * count(structure,"PPII")
 	ppii_percentage = d_ppii / all_structure.shape[0]
 	if figures:
-		images(ppii_percentage, "polyprolineII")
+		images(ppii_percentage, "polyprolineII-helix")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"polyproline-percentage", \
-		d_ppii[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		numpys("polyprolineII-helix", ppii_percentage)
 
 if args.customized_region:
 	d_custom = np.zeros([aminoacids, aminoacids+1])
@@ -478,11 +471,9 @@ if args.customized_region:
 		d_custom += w * count(structure,args.customized_region)
 	custom_percentage = d_custom / all_structure.shape[0]
 	if figures:
-		images(custom_percentage, "custom region")
+		images(custom_percentage, "custom-region")
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-%s-percentage-%s-definition"%\
-		(args.customized_region[0], args.structure_definition), \
-		d_custom[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+		numpys("custom-region", custom_percentage)
 
 if args.hr and figures:
 	try:
@@ -490,18 +481,15 @@ if args.hr and figures:
 	except NameError:
 		d_alpha = np.zeros([aminoacids, aminoacids+1])
 		for structure,w in zip(all_structure,weights): d_alpha = d_alpha + w*count(structure,"alpha")
-		d_alpha = d_alpha/all_structure.shape[0]
+		alpha_percentage = d_alpha/all_structure.shape[0]
 	pl.figure()
-	pl.plot(d_alpha[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+	pl.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
 	#pl.title("% Alpha-helix", fontsize =12)
-	pl.xlim(1,d_alpha.shape[0])
+	pl.xlim(1,alpha_percentage.shape[0])
 	if args.save_figure:
-		pl.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"\
-		%args.structure_definition)
+		pl.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
 	if args.save_numpy:
-		np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"\
-		%args.structure_definition, d_alpha[args.residues[0]:args.residues[1], \
-		args.groups[0]:args.groups[1]].sum(axis=1))
+		np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition, alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
 
 if args.hgt:
 	all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
@@ -533,7 +521,7 @@ if args.hgt:
 	if figures:
 		temperatures = []
 		if not args.temp:
-			for i in range(len(all_files)): temperatures.append(i)
+			for i in range(1,len(all_files)+1): temperatures.append(i)
 		else:
 			for element in args.temp: temperatures.append(element)
 		fig = pl.figure("Structured region lenght per residue and temperature")
@@ -545,10 +533,6 @@ if args.hgt:
 		cb=fig.colorbar(cs)
 		cb.set_ticks(np.linspace(0,np.round(d[:,1:].max(),decimals = 2), 11))
 		(ydim, xdim) =d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
-<<<<<<< .mine
-=======
-		starting_residue=2
->>>>>>> .r117
 		xticks_spacing=int(ax.get_xticks()[1]-ax.get_xticks()[0])
 		yticks_spacing=int(ax.get_xticks()[1]-ax.get_yticks()[0])
 		ax.grid()
