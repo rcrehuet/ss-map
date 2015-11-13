@@ -42,11 +42,11 @@ import os
 
 try: import numpy as np
 except ImportError:
-    print "You do not have installed the numpy module."
+    print("You do not have installed the numpy module.")
     sys.exit()
 try: import pylab as pl
 except ImportError:
-    print "You do not haveinstalled the pylab module.\nThe program will not generate any image, if you want to save the data use any of the following options:\n-save_numpy \n-txt"
+    print("You do not haveinstalled the pylab module.\nThe program will not generate any image, if you want to save the data use any of the following options:\n-save_numpy \n-txt")
     figures = False
 """
 The following libraries are installed when intalling python as part
@@ -368,11 +368,11 @@ elif os.path.isdir(args.files):
     import warnings
     all_data = np.asarray(pdb_npy(args.files))
     if  len(all_data)==0:
-        print 'The folder has no pdb files.'
-        print 'Exiting the program.'
+        print('The folder has no pdb files.')
+        print('Exiting the program.')
         sys.exit()
 else:
-    print "Incorrect data type.\nThis program only takes as valid input a numpy array or a folder with multple PDB files."
+    print("Incorrect data type.\nThis program only takes as valid input a numpy array or a folder with multple PDB files.")
     sys.exit()
 
 if args.w:
@@ -382,9 +382,9 @@ if args.w:
     elif typo == "npy" or typo == "npz":
         weights = np.load(args.w)
     else:
-        print "This program only takes the weights from a .txt file or a .npy file."
+        print("This program only takes the weights from a .txt file or a .npy file.")
     if weights.shape[0] != all_data.shape[0]:
-        print "The number of weights and the number of structures do not match."
+        print("The number of weights and the number of structures do not match.")
         sys.exit()
     weights /= weights.sum()
     weights *= len(weights)
@@ -412,13 +412,13 @@ if args.customized_region:
 if args.stride:
     """Calculating stride"""
     pdb_list = glob.glob(args.stride[0]+"*.pdb")
-    if not pdb_list: print "Directory no valid: "+args.stride[0]
+    if not pdb_list: print("Directory no valid: "+args.stride[0])
     else:
         alfa = False
         beta = False
-        print "Calculating stride with the pdbs in directory: %s"%args.stride[0]
+        print("Calculating stride with the pdbs in directory: %s"%args.stride[0])
         all_structure_stride = np.asarray([stride(pdb[:-4]) for pdb in pdb_list])
-        print "Stride completed"
+        print("Stride completed")
         try: args.stride[1] == 'alpha' or args.stride[2] == 'alpha'
         except IndexError: pass
         else: alfa = True
@@ -533,7 +533,7 @@ if args.hgt:
             for element in args.temp: temperatures.append(element)
         fig = pl.figure("Structured region lenght per residue and temperature")
         ax = fig.add_subplot(111)
-        cs = ax.contourf(range(args.groups[0],args.groups[1]),np.asarray(temperatures),
+        cs = ax.contourf(list(range(args.groups[0],args.groups[1])),np.asarray(temperatures),
                         d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]],
                         np.linspace(0, d[:,1:].max(), 1000))
         if args.rgc: cs.set_clim(float(args.rgc[0]),float(args.rgc[1]))
@@ -581,5 +581,5 @@ if args.txt and (args.stride or args.alpha or args.beta or args.polyproline or a
         %args.structure_definition,d_hr,fmt = '%4f')
 elif args.txt and not (args.stride or args.alpha or args.beta or args.polyproline \
    or args.hr or args.hrt or args.hgt):
-     print "You have calculated nothing."
+     print("You have calculated nothing.")
 
