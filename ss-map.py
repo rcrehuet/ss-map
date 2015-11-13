@@ -39,12 +39,18 @@ and the information will be saved in a .txt file
 figures = True
 import sys
 import os
+import argparse
+import subprocess as subp
+import glob
 
-try: import numpy as np
+try: 
+    import numpy as np
 except ImportError:
     print("You do not have installed the numpy module.")
     sys.exit()
-try: import pylab as pl
+try: 
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter #Needed to zoom in figure
 except ImportError:
     print("You do not haveinstalled the pylab module.\nThe program will not generate any image, if you want to save the data use any of the following options:\n-save_numpy \n-txt")
     figures = False
@@ -52,12 +58,6 @@ except ImportError:
 The following libraries are installed when intalling python as part
 of the Standard Library
 """
-import argparse
-import subprocess as subp
-import glob
-import math
-from matplotlib.ticker import FuncFormatter
-
 
 def profasi(data):
     """
@@ -204,7 +204,7 @@ def stride(name):
 
 def count (data, struct):
     """
-    This function count how many aminoacids are in a given structure in a row.
+    This function counts how many aminoacids are in a given structure in a row.
     """
     mat = np.zeros([len(data), len(data)+1])
     a=[]
@@ -229,17 +229,17 @@ def images (percentages, structure):
         """
         Format the length of the fragment, as an integer starting by 1
         """
-        return '%d' % (x+starting_group,)
+        return '{:.0f}'.format(x+starting_group,)
 
     def yformat(y, pos):
         """
         Format the the residue number
         """    
-        return '%d' % (y+starting_residue,)
+        return '{:.0f}'.format(y+starting_residue,)
     
     xformatter = FuncFormatter(xformat)
     yformatter = FuncFormatter(yformat)
-    fig = pl.figure(structure)
+    fig = plt.figure(structure)
     ax = fig.add_subplot(111)
     cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], \
     cmap = args.cm)
@@ -253,7 +253,7 @@ def images (percentages, structure):
     ax.grid()
     fig.show()
     if args.save_figure:
-        pl.savefig("%s-%s-estructure-%s-definition"%(args.save_figure,structure,args.structure_definition))
+        plt.savefig("%s-%s-estructure-%s-definition"%(args.save_figure,structure,args.structure_definition))
     return
 
 def numpys (structure, results):
@@ -268,7 +268,7 @@ def degrees(rad_angle) :
     """
     if rad_angle is None :
         return None
-    angle = rad_angle * 180 / math.pi
+    angle = rad_angle * 180 / np.pi
     while angle > 180 :
         angle = angle - 360
     while angle < -180 :
@@ -329,8 +329,8 @@ images_properties.add_argument("-cm","-color_map", default = "jet", choices = ['
 images_properties.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
                     help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 data_properties = parser.add_argument_group("Data properties","The commands to change the data shown.")
-data_properties.add_argument("-groups","-g", type = int, nargs = 2, default = False,
-                    help = "The initial and the final groups to show. The default values are all groups except the group zero (which indicates the aminoacids without the desired conformation).")
+data_properties.add_argument("-length","-l", type = int, nargs = 2, default = False,
+                    help = "The initial and the final lengths to show. The default values are all lengths except the zero (which indicates the aminoacids without the desired conformation).")
 data_properties.add_argument("-residues","-r", type = int, nargs = 2, default = False,
                     help = "The initial and the final residues to show. By default all the residues are shown excep the first one and the last one (for more details see documentation).")
 
@@ -379,7 +379,7 @@ if args.w:
     typo = args.w.split(".")[-1]
     if typo == "txt":
         weights = np.loadtxt(args.w)
-    elif typo == "npy" or typo == "npz":
+    elif typo == "npy":
         weights = np.load(args.w)
     else:
         print("This program only takes the weights from a .txt file or a .npy file.")
@@ -393,8 +393,8 @@ else:
 
 if not args.residues: args.residues = [0,all_data.shape[1]]
 else: args.residues = [args.residues[0]-2,args.residues[1]-1]
-if args.groups:
-    args.groups[-1] += 1
+if args.length:
+    args.length[-1] += 1
 else: 
     args.groups = [1,all_data.shape[1]+1]
 
@@ -489,12 +489,12 @@ if args.hr and figures:
         d_alpha = np.zeros([aminoacids, aminoacids+1])
         for structure,w in zip(all_structure,weights): d_alpha = d_alpha + w*count(structure,"alpha")
         alpha_percentage = d_alpha/all_structure.shape[0]
-    pl.figure()
-    pl.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
-    #pl.title("% Alpha-helix", fontsize =12)
-    pl.xlim(1,alpha_percentage.shape[0])
+    plt.figure()
+    plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+    #plt.title("% Alpha-helix", fontsize =12)
+    plt.xlim(1,alpha_percentage.shape[0])
     if args.save_figure:
-        pl.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
+        plt.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
     if args.save_numpy:
         np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition, alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
 
@@ -531,7 +531,7 @@ if args.hgt:
             for i in range(1,len(all_files)+1): temperatures.append(i)
         else:
             for element in args.temp: temperatures.append(element)
-        fig = pl.figure("Structured region lenght per residue and temperature")
+        fig = plt.figure("Structured region lenght per residue and temperature")
         ax = fig.add_subplot(111)
         cs = ax.contourf(list(range(args.groups[0],args.groups[1])),np.asarray(temperatures),
                         d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]],
@@ -545,13 +545,13 @@ if args.hgt:
         ax.grid()
         fig.show()
     if args.save_figure:
-        pl.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"\
+        plt.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"\
         %(args.save_figure[0],args.structure_definition))
     if args.save_numpy:
         np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', \
         d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
-if figures: pl.show()
+if figures: plt.show()
 else: args.txt = True
 
 if args.txt and (args.stride or args.alpha or args.beta or args.polyproline or args.hr or args.hrt or args.hgt):
