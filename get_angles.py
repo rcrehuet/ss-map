@@ -28,6 +28,8 @@
 # http://iqac.csic.es/qteor
 #
 import sys
+import argparse
+
 try: 
     import numpy as np
 except ImportError:
@@ -40,8 +42,27 @@ except ImportError:
     print("get_angles needs the mdtraj library. Get it from http://mdtraj.org")
     sys.exit()
 
-files = sys.argv[1:]
-traj = md.load(files)
+
+parser = argparse.ArgumentParser(\
+      description="Generate an numpy array with the phi and psi angles.")
+parser.add_argument("filename", nargs='+', 
+    help="The structure file(s) (pdb, xtc,...).")
+parser.add_argument('--top', 
+                   help='The topology file (needed for structure files \
+                   without topology)')
+args = parser.parse_args()
+
+if not args.top:
+    try:
+        traj = md.load(args.filename)
+    except ValueError:
+        print("ERROR: You need to specify a topology (pdb, gro, ...) for this \
+kind of trajectory file.")
+        sys.exit()
+else:
+    traj = md.load(args.filename, top=args.top)
+
+
 phi = md.geometry.compute_phi(traj)[1] #from -pi to pi
 psi = md.geometry.compute_psi(traj)[1] #from -pi to pi
 angles = np.rollaxis(np.array([psi, phi]), 0, start=3)
