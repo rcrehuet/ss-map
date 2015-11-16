@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #============================ SS-map ==================================
 # ss-map is a Python program to visualize the proteins ensembles
@@ -22,7 +22,7 @@
 # Ramon Crehuet
 #======================================================================
 # For more information visit:
-# http://code.google.com/p/ss-map
+# https://github.com/rcrehuet/ss-map
 #
 # This work is done by the Theoretical and Computational Group
 # of the IQAC (CSIC)
@@ -52,7 +52,9 @@ try:
     import matplotlib.pyplot as plt
     from matplotlib.ticker import FuncFormatter #Needed to zoom in figure
 except ImportError:
-    print("You do not haveinstalled the pylab module.\nThe program will not generate any image, if you want to save the data use any of the following options:\n-save_numpy \n-txt")
+    print("You do not haveinstalled the Matplotlib module.\n\
+    The program will not generate any image, if you want to save the data \
+    use any of the following options:\n-save_numpy \n-txt")
     figures = False
 """
 The following libraries are installed when intalling python as part
@@ -202,7 +204,7 @@ def stride(name):
     subp.call(cleaning)
     return chain_structure
 
-def count (data, struct):
+def count(data, struct):
     """
     This function counts how many aminoacids are in a given structure in a row.
     """
@@ -241,11 +243,12 @@ def images (percentages, structure):
     yformatter = FuncFormatter(yformat)
     fig = plt.figure(structure)
     ax = fig.add_subplot(111)
-    cs = ax.matshow(percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]], \
-    cmap = args.cm)
+    cs = ax.matshow(percentages[args.residues[0]:args.residues[1], \
+         args.groups[0]:args.groups[1]], cmap = args.cm)
     if args.rgc: cs.set_clim(float(args.rgc[0]),float(args.rgc[1]))
     fig.colorbar(cs)
-    (ydim, xdim) =percentages[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
+    (ydim, xdim) =percentages[args.residues[0]:args.residues[1], \
+                  args.groups[0]:args.groups[1]].shape
     starting_residue=args.residues[0]+2
     starting_group = args.groups[0]
     ax.yaxis.set_major_formatter(yformatter)
@@ -253,12 +256,14 @@ def images (percentages, structure):
     ax.grid()
     fig.show()
     if args.save_figure:
-        plt.savefig("%s-%s-estructure-%s-definition"%(args.save_figure,structure,args.structure_definition))
+        plt.savefig("%s-%s-estructure-%s-definition"%(args.save_figure,\
+        structure,args.structure_definition))
     return
 
 def numpys (structure, results):
-    np.save("%s-%s-percentage-%s-definition"%(args.save_numpy,structure,args.structure_definition),
-             results[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+    np.save("%s-%s-percentage-%s-definition"%(args.save_numpy, \
+    structure,args.structure_definition), \
+    results[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 def degrees(rad_angle) :
     """Converts any angle in radians to degrees.
@@ -275,84 +280,59 @@ def degrees(rad_angle) :
         angle = angle + 360
     return angle
 
-def angles_calcul (pdb_code):
-    """
-    Read the phi-psi angles of pdb_code using Biopython. Silence parsing warnings.
-    """
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        structure = Bio.PDB.PDBParser().get_structure(pdb_code, "%s.pdb" % pdb_code)
-    angles = []
-    for chain in structure[0] :
-        #print "Chain %s" % str(chain.id)
-        polypeptides = Bio.PDB.CaPPBuilder().build_peptides(chain)
-        for poly_index, poly in enumerate(polypeptides) :
-            phi_psi = poly.get_phi_psi_list()
-            for res_index, residue in enumerate(poly) :
-                phi, psi = phi_psi[res_index]
-                if phi and psi :
-                    #Don't write output when missing an angle
-                    angles.append([degrees(phi), degrees(psi)])
-    return np.asarray(angles)
-
-def pdb_npy (folder):
-    filelist = glob.glob(os.path.join(folder,'*.pdb'))
-    filelist.sort()
-    dat = []
-    for filename in filelist: dat.append(angles_calcul(filename[:-4]))
-    return dat
 
 #Defining the arguments:
 parser = argparse.ArgumentParser(description="Get the secondary structure from the phi and psi angles.")
-parser.add_argument("files", help="The .npy file with the angles or a folder with the PDB files to calculate the angles.")
+parser.add_argument("files", 
+    help="The .npy file with the angles (calculated with get_angles.")
 conformations = parser.add_argument_group("conformations", "All the predefined accepted conformations.")
 conformations.add_argument("-alpha", "-a", action = "store_true", default = False,
-                    help="When present  the alpha  helix region will be studied.")
+    help="When present  the alpha  helix region will be studied.")
 conformations.add_argument("-beta", "-b", action = "store_true", default = False,
-                    help="When present  the beta strand  region will be studied.")
+    help="When present  the beta strand  region will be studied.")
 conformations.add_argument("-polyproline", "-ppii", action = "store_true", default = False,
-                    help="When present  the polyproline II helix  region will be studied..")
+    help="When present  the polyproline II helix  region will be studied..")
 ramachandran_regions = parser.add_argument_group("Ramachandran regions", "The commands to set the ramachandran regions.")
 ramachandran_regions.add_argument("-structure_definition", "-sd", choices=["profasi","pappu","blackledge"],
                     default="blackledge",
-                    help = "Which regions definition you want to use: ''profasi, 'pappu' or 'blackledge'. by default 'blackledge'.\nYou can define you own region with the customizer_region option.")
+    help = "Which regions definition you want to use: ''profasi, 'pappu' or 'blackledge'. by default 'blackledge'.\nYou can define you own region with the customizer_region option.")
 ramachandran_regions.add_argument("-customized_region", "-cr", default = False, nargs = 5,
-                    help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angles.")
+    help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angles.")
 
 stride2 = parser.add_argument_group("STRIDE", "The command that calls the external program STRIDE.")
 stride2.add_argument("-stride", "-st", default = False,
-                    help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
+    help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
 
 images_properties = parser.add_argument_group("Images properties","The commands to change the images properties.")
 images_properties.add_argument("-cm","-color_map", default = "jet", choices = ['jet','binary'],
-                    help = "This option specifies the colormap to plot the images for black and white the option should be: binary.")
+    help = "This option specifies the colormap to plot the images for black and white the option should be: binary.")
 images_properties.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
-                    help = "This option sets the minimum and maximum percentage shown in the resulting image.")
+    help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 data_properties = parser.add_argument_group("Data properties","The commands to change the data shown.")
 data_properties.add_argument("-length","-l", type = int, nargs = 2, default = False,
-                    help = "The initial and the final lengths to show. The default values are all lengths except the zero (which indicates the aminoacids without the desired conformation).")
+    help = "The initial and the final lengths to show. The default values are all lengths except the zero (which indicates the aminoacids without the desired conformation).")
 data_properties.add_argument("-residues","-r", type = int, nargs = 2, default = False,
-                    help = "The initial and the final residues to show. By default all the residues are shown excep the first one and the last one (for more details see documentation).")
+    help = "The initial and the final residues to show. By default all the residues are shown excep the first one and the last one (for more details see documentation).")
 
 ensemble_weights = parser.add_argument_group("Ensemble weights","The commands to specify the ensembles weights.")
 ensemble_weights.add_argument("-w","-weights", default = False,
-                    help = "This option specifies the complete path to the weights file.")
+    help = "This option specifies the complete path to the weights file.")
 
 other_plots = parser.add_argument_group("Other plots", "The commands to generate other plots.")
 other_plots.add_argument("-hr","-helix-per-residue", action = "store_true", default = False,
-                    help = "When present the program draws the alpha-helix percentage per residue.")
+    help = "When present the program draws the alpha-helix percentage per residue.")
 other_plots.add_argument("-hgt","-helix-per-group", action = "store_true", default = False,
-                    help = "When present the program draws the alpha helix region length per residue and temperature.")
+    help = "When present the program draws the alpha helix region length per residue and temperature.")
 other_plots.add_argument("-temp","-temperature", default = False, nargs = '+',
-                    help = "This option set the temperatures shown in the y axe.")
+    help = "This option set the temperatures shown in the y axe.")
 
 saving_the_results = parser.add_argument_group("Saving the results","Commands to save the data.")
 saving_the_results.add_argument("-save_figure","-sf",  default = False,
-                    help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
+    help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
 saving_the_results.add_argument("-save_numpy","-sn",  default = False,
-                    help = "The path to save the numpy/s array.")
+    help = "The path to save the numpy/s array.")
 saving_the_results.add_argument("-txt", default = False,
-                    help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the files.")
+    help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the files.")
 
 args = parser.parse_args()
 
@@ -363,16 +343,8 @@ if args.polyproline and args.structure_definition == "profasi":
 
 if args.files.split(".")[-1] == "npy":
     all_data = np.load(args.files)
-elif os.path.isdir(args.files):
-    import Bio.PDB
-    import warnings
-    all_data = np.asarray(pdb_npy(args.files))
-    if  len(all_data)==0:
-        print('The folder has no pdb files.')
-        print('Exiting the program.')
-        sys.exit()
 else:
-    print("Incorrect data type.\nThis program only takes as valid input a numpy array or a folder with multple PDB files.")
+    print("Incorrect data type.\nThis program only takes as valid input a numpy array.")
     sys.exit()
 
 if args.w:
@@ -496,7 +468,11 @@ if args.hr and figures:
     if args.save_figure:
         plt.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
     if args.save_numpy:
-        np.save(args.save_numpy[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition, alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+        np.save(args.save_numpy[0]+\
+        "-alpha-helix-percentage-per-residue-%s-definition"\
+        %args.structure_definition,\
+        alpha_percentage[args.residues[0]:args.residues[1], \
+        args.groups[0]:args.groups[1]].sum(axis=1))
 
 if args.hgt:
     all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
