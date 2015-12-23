@@ -304,8 +304,9 @@ stride2.add_argument("-stride", "-st", default = False,
     help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
 
 images_properties = parser.add_argument_group("Images properties","The commands to change the images properties.")
-images_properties.add_argument("-cm","-color_map", default = "jet", choices = ['jet','binary'],
-    help = "This option specifies the colormap to plot the images for black and white the option should be: binary.")
+images_properties.add_argument("-cm","-color_map", default = "Blues",
+    help = "This option specifies the colormap to plot the images. \
+    For black and white the option should be: binary.")
 images_properties.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
     help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 data_properties = parser.add_argument_group("Data properties","The commands to change the data shown.")
@@ -321,8 +322,8 @@ ensemble_weights.add_argument("-w","-weights", default = False,
 other_plots = parser.add_argument_group("Other plots", "The commands to generate other plots.")
 other_plots.add_argument("-hr","-helix-per-residue", action = "store_true", default = False,
     help = "When present the program draws the alpha-helix percentage per residue.")
-other_plots.add_argument("-hgt","-helix-per-group", action = "store_true", default = False,
-    help = "When present the program draws the alpha helix region length per residue and temperature.")
+other_plots.add_argument("-hg","-helix-per-group", action = "store_true", default = False,
+    help = "When present the program draws the alpha helix region length.")
 other_plots.add_argument("-temp","-temperature", default = False, nargs = '+',
     help = "This option set the temperatures shown in the y axe.")
 
@@ -466,66 +467,86 @@ if args.hr and figures:
     #plt.title("% Alpha-helix", fontsize =12)
     plt.xlim(1,alpha_percentage.shape[0])
     if args.save_figure:
-        plt.savefig(args.save_figure[0]+"-alpha-helix-percentage-per-residue-%s-definition"%args.structure_definition)
+        plt.savefig(args.save_figure[0]+"-per-residue-%s"%args.structure_definition)
     if args.save_numpy:
         np.save(args.save_numpy[0]+\
-        "-alpha-helix-percentage-per-residue-%s-definition"\
+        "-per-residue-%s"\
         %args.structure_definition,\
         alpha_percentage[args.residues[0]:args.residues[1], \
         args.groups[0]:args.groups[1]].sum(axis=1))
 
-if args.hgt:
-    all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
-    #print "All the files should be from the same type: .npy."
-    all_files.sort()
-    all_data_hgt = []
-    all_data_hgt = np.asarray([np.load(file) for file in all_files])
-    all_structure_hgt = []
-    for data in all_data_hgt:
-        if args.structure_definition == "blackledge"  : 
-            all_structure_hgt.append(np.asarray([blackledge(dat) for dat in data]))
-        elif args.structure_definition == "profasi":
-            all_structure_hgt.append(np.asarray([profasi(dat) for dat in data]))
-        elif args.structure_definition == "pappu":
-            all_structure_hgt.append(np.asarray([pappu(dat) for dat in data]))
-        elif args.customized_region:
-            all_structure = np.asarray([custom(data) for data in all_data])
-            args.structure_definition = 'customized'
-    all_structure_hgt = np.asarray(all_structure_hgt)
-    d0 = np.zeros([aminoacids, aminoacids+1])
-    for struct in all_structure_hgt[0]: d0 += count(struct,"alpha")
-    d0 /= all_structure_hgt[0].shape[0]
-    d = d0.sum(axis=0)/d0.shape[1]
-    for structure in all_structure_hgt[1:]:
-        d0 = np.zeros([aminoacids, aminoacids+1])
-        for struct in structure: d0 += count(struct,"alpha")
-        d0 /= structure.shape[0]
-        d = np.row_stack((d,d0.sum(axis=0)/d0.shape[1]))
-    if figures:
-        temperatures = []
-        if not args.temp:
-            for i in range(1,len(all_files)+1): temperatures.append(i)
-        else:
-            for element in args.temp: temperatures.append(element)
-        fig = plt.figure("Structured region lenght per residue and temperature")
-        ax = fig.add_subplot(111)
-        cs = ax.contourf(list(range(args.groups[0],args.groups[1])),np.asarray(temperatures),
-                        d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]],
-                        np.linspace(0, d[:,1:].max(), 1000))
-        if args.rgc: cs.set_clim(float(args.rgc[0]),float(args.rgc[1]))
-        cb=fig.colorbar(cs)
-        cb.set_ticks(np.linspace(0,np.round(d[:,1:].max(),decimals = 2), 11))
-        (ydim, xdim) =d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
-        xticks_spacing=int(ax.get_xticks()[1]-ax.get_xticks()[0])
-        yticks_spacing=int(ax.get_xticks()[1]-ax.get_yticks()[0])
-        ax.grid()
-        fig.show()
+if args.hg and figures:
+    try:
+        d_alpha
+    except NameError:
+        d_alpha = np.zeros([aminoacids, aminoacids+1])
+        for structure,w in zip(all_structure,weights): d_alpha = d_alpha + w*count(structure,"alpha")
+        alpha_percentage = d_alpha/all_structure.shape[0]
+    plt.figure()
+    plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=0))
+    #plt.title("% Alpha-helix", fontsize =12)
+    plt.xlim(1,alpha_percentage.shape[1])
     if args.save_figure:
-        plt.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"\
-        %(args.save_figure[0],args.structure_definition))
+        plt.savefig(args.save_figure[0]+"-per-length-%s"%args.structure_definition)
     if args.save_numpy:
-        np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', \
-        d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+        np.save(args.save_numpy[0]+\
+        "-per-length-%s"\
+        %args.structure_definition,\
+        alpha_percentage[args.residues[0]:args.residues[1], \
+        args.groups[0]:args.groups[1]].sum(axis=0))
+        
+#if args.hgt:
+    #all_files = glob.glob("-".join(args.files.split('-')[:-1])+"*.npy")
+    ##print "All the files should be from the same type: .npy."
+    #all_files.sort()
+    #all_data_hgt = []
+    #all_data_hgt = np.asarray([np.load(file) for file in all_files])
+    #all_structure_hgt = []
+    #for data in all_data_hgt:
+        #if args.structure_definition == "blackledge"  : 
+            #all_structure_hgt.append(np.asarray([blackledge(dat) for dat in data]))
+        #elif args.structure_definition == "profasi":
+            #all_structure_hgt.append(np.asarray([profasi(dat) for dat in data]))
+        #elif args.structure_definition == "pappu":
+            #all_structure_hgt.append(np.asarray([pappu(dat) for dat in data]))
+        #elif args.customized_region:
+            #all_structure = np.asarray([custom(data) for data in all_data])
+            #args.structure_definition = 'customized'
+    #all_structure_hgt = np.asarray(all_structure_hgt)
+    #d0 = np.zeros([aminoacids, aminoacids+1])
+    #for struct in all_structure_hgt[0]: d0 += count(struct,"alpha")
+    #d0 /= all_structure_hgt[0].shape[0]
+    #d = d0.sum(axis=0)/d0.shape[1]
+    #for structure in all_structure_hgt[1:]:
+        #d0 = np.zeros([aminoacids, aminoacids+1])
+        #for struct in structure: d0 += count(struct,"alpha")
+        #d0 /= structure.shape[0]
+        #d = np.row_stack((d,d0.sum(axis=0)/d0.shape[1]))
+    #if figures:
+        #temperatures = []
+        #if not args.temp:
+            #for i in range(1,len(all_files)+1): temperatures.append(i)
+        #else:
+            #for element in args.temp: temperatures.append(element)
+        #fig = plt.figure("Structured region lenght per residue and temperature")
+        #ax = fig.add_subplot(111)
+        #cs = ax.contourf(list(range(args.groups[0],args.groups[1])),np.asarray(temperatures),
+                        #d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]],
+                        #np.linspace(0, d[:,1:].max(), 1000))
+        #if args.rgc: cs.set_clim(float(args.rgc[0]),float(args.rgc[1]))
+        #cb=fig.colorbar(cs)
+        #cb.set_ticks(np.linspace(0,np.round(d[:,1:].max(),decimals = 2), 11))
+        #(ydim, xdim) =d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].shape
+        #xticks_spacing=int(ax.get_xticks()[1]-ax.get_xticks()[0])
+        #yticks_spacing=int(ax.get_xticks()[1]-ax.get_yticks()[0])
+        #ax.grid()
+        #fig.show()
+    #if args.save_figure:
+        #plt.savefig("%s-alpha-helix-percentage-per-group-and-temperature-%s"\
+        #%(args.save_figure[0],args.structure_definition))
+    #if args.save_numpy:
+        #np.save(args.save_numpy[0]+'structured-region-lenght-with-temperature', \
+        #d[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
 
 if figures: plt.show()
 else: args.txt = True
