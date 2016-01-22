@@ -328,8 +328,8 @@ other_plots.add_argument("-hg","-helix-per-group", action = "store_true", defaul
 #    help = "This option set the temperatures shown in the y axe.")
 
 saving_the_results = parser.add_argument_group("Saving the results","Commands to save the data.")
-#saving_the_results.add_argument("-save_figure","-sf",  default = False,
-#    help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
+saving_the_results.add_argument("-save_figure","-sf",  default = False,
+    help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
 saving_the_results.add_argument("-save_numpy","-sn",  default = False,
     help = "The path to save the numpy/s array.")
 saving_the_results.add_argument("-txt", default = False,
