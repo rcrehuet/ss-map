@@ -62,9 +62,13 @@ kind of trajectory file.")
 else:
     traj = md.load(args.filename, top=args.top)
 
+atoms_phi, phi = md.geometry.compute_phi(traj) #from -pi to pi
+atoms_psi, psi = md.geometry.compute_psi(traj) #from -pi to pi
+atoms_phi = atoms_phi[:, 1]
+atoms_psi = atoms_psi[:, 0]
+phi = phi[:, np.in1d(atoms_phi, atoms_psi)]
+psi = psi[:, np.in1d(atoms_psi, atoms_phi)]
 
-phi = md.geometry.compute_phi(traj)[1] #from -pi to pi
-psi = md.geometry.compute_psi(traj)[1] #from -pi to pi
 angles = np.rollaxis(np.array([psi, phi]), 0, start=3)
 angles *=180/np.pi
 
