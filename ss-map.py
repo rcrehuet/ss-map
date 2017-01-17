@@ -264,7 +264,7 @@ def numpys (structure, results):
     np.save("%s-%s-percentage-%s-definition"%(args.save_numpy, \
     structure,args.structure_definition), \
     results[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
-
+        
 def degrees(rad_angle) :
     """Converts any angle in radians to degrees.
 
@@ -286,51 +286,51 @@ parser = argparse.ArgumentParser(description="Get the secondary structure from t
 parser.add_argument("files", 
     help="The .npy file with the angles (calculated with get_angles.")
 conformations = parser.add_argument_group("conformations", "All the predefined accepted conformations.")
-conformations.add_argument("-alpha", "-a", action = "store_true", default = False,
+conformations.add_argument("--alpha", "-a", action = "store_true", default = False,
     help="When present  the alpha  helix region will be studied.")
-conformations.add_argument("-beta", "-b", action = "store_true", default = False,
+conformations.add_argument("--beta", "-b", action = "store_true", default = False,
     help="When present  the beta strand  region will be studied.")
-conformations.add_argument("-polyproline", "-ppii", action = "store_true", default = False,
+conformations.add_argument("--polyproline", "-ppii", action = "store_true", default = False,
     help="When present  the polyproline II helix  region will be studied..")
 ramachandran_regions = parser.add_argument_group("Ramachandran regions", "The commands to set the ramachandran regions.")
-ramachandran_regions.add_argument("-structure_definition", "-sd", choices=["profasi","pappu","blackledge"],
+ramachandran_regions.add_argument("--structure_definition", "-sd", choices=["profasi","pappu","blackledge"],
                     default="blackledge",
     help = "Which regions definition you want to use: ''profasi, 'pappu' or 'blackledge'. by default 'blackledge'.\nYou can define you own region with the customizer_region option.")
-ramachandran_regions.add_argument("-customized_region", "-cr", default = False, nargs = 5,
+ramachandran_regions.add_argument("--customized_region", "-cr", default = False, nargs = 5,
     help = "This option defines a customized region in the Ramachandran Plot. Usage = -cr  Structure  phi0 phi1 psi0 psi1. Where Structure is the conformation's name in the region  and phi/psi0 is the minimum value and the phi/psi1 is the maximun value for the angles.")
 
 stride2 = parser.add_argument_group("STRIDE", "The command that calls the external program STRIDE.")
-stride2.add_argument("-stride", "-st", default = False,
+stride2.add_argument("--stride", "-st", default = False,
     help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
 
 images_properties = parser.add_argument_group("Images properties","The commands to change the images properties.")
-images_properties.add_argument("-cm","-color_map", default = "Blues",
+images_properties.add_argument("--color_map", "-cm", dest='cm', default = "Blues",
     help = "This option specifies the colormap to plot the images. \
     For black and white the option should be: binary.")
-images_properties.add_argument("-rgc","-range_colorbar", default = False, nargs = 2,
+images_properties.add_argument("--range_colorbar", "-rgc", dest='rgc', default = False, nargs = 2,
     help = "This option sets the minimum and maximum percentage shown in the resulting image.")
 data_properties = parser.add_argument_group("Data properties","The commands to change the data shown.")
-data_properties.add_argument("-length","-l", type = int, nargs = 2, default = False,
+data_properties.add_argument("--length","-l", type = int, nargs = 2, default = False,
     help = "The initial and the final lengths to show. The default values are all lengths except the zero (which indicates the aminoacids without the desired conformation).")
-data_properties.add_argument("-residues","-r", type = int, nargs = 2, default = False,
-    help = "The initial and the final residues to show. By default all the residues are shown excep the first one and the last one (for more details see documentation).")
+data_properties.add_argument("--residues","-r", type = int, nargs = 2, default = False,
+    help = "The initial and the final residues to show. By default all the residues are shown.")
 
 ensemble_weights = parser.add_argument_group("Ensemble weights","The commands to specify the ensembles weights.")
-ensemble_weights.add_argument("-w","-weights", default = False,
+ensemble_weights.add_argument("--weights","-w", dest='w',default = False,
     help = "This option specifies the complete path to the weights file.")
 
 other_plots = parser.add_argument_group("Other plots", "The commands to generate other plots.")
-other_plots.add_argument("-hr","-helix-per-residue", action = "store_true", default = False,
+other_plots.add_argument("--helix-per-residue","-hr", dest='hr', action = "store_true", default = False,
     help = "When present the program draws the alpha-helix percentage per residue.")
-other_plots.add_argument("-hg","-helix-per-group", action = "store_true", default = False,
+other_plots.add_argument("--helix-per-length", "-hl", dest='hg', action = "store_true", default = False,
     help = "When present the program draws the alpha helix region length.")
 #other_plots.add_argument("-temp","-temperature", default = False, nargs = '+',
 #    help = "This option set the temperatures shown in the y axe.")
 
 saving_the_results = parser.add_argument_group("Saving the results","Commands to save the data.")
-saving_the_results.add_argument("-save_figure","-sf",  default = False,
+saving_the_results.add_argument("--save_figure","-sf",  default = False,
     help = "The path where the figure/s will be saved (including  prefix, see documentation for more details).")
-saving_the_results.add_argument("-save_numpy","-sn",  default = False,
+saving_the_results.add_argument("--save_numpy","-sn",  default = False,
     help = "The path to save the numpy/s array.")
 saving_the_results.add_argument("-txt", default = False,
     help = "When present the program will save the percentages in a .txt file. It should indicate the path to save the files.")
