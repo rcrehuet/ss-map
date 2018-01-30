@@ -42,12 +42,8 @@ import os
 import argparse
 import subprocess as subp
 import glob
+import numpy as np
 
-try: 
-    import numpy as np
-except ImportError:
-    print("You do not have installed the numpy module.")
-    sys.exit()
 try: 
     import matplotlib.pyplot as plt
     from matplotlib.ticker import FuncFormatter #Needed to zoom in figure
@@ -244,13 +240,13 @@ def images (percentages, structure):
     fig = plt.figure(structure)
     ax = fig.add_subplot(111)
     cs = ax.matshow(percentages[args.residues[0]:args.residues[1], \
-         args.groups[0]:args.groups[1]], cmap = args.cm)
+         args.length[0]:args.length[1]], cmap = args.cm)
     if args.rgc: cs.set_clim(float(args.rgc[0]),float(args.rgc[1]))
     fig.colorbar(cs)
     (ydim, xdim) =percentages[args.residues[0]:args.residues[1], \
-                  args.groups[0]:args.groups[1]].shape
+                  args.length[0]:args.length[1]].shape
     starting_residue=args.residues[0]+2
-    starting_group = args.groups[0]
+    starting_group = args.length[0]
     ax.yaxis.set_major_formatter(yformatter)
     ax.xaxis.set_major_formatter(xformatter)
     ax.grid()
@@ -263,24 +259,8 @@ def images (percentages, structure):
 def numpys (structure, results):
     np.save("%s-%s-percentage-%s-definition"%(args.save_numpy, \
     structure,args.structure_definition), \
-    results[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]])
+    results[args.residues[0]:args.residues[1], args.length[0]:args.length[1]])
         
-def degrees(rad_angle) :
-    """Converts any angle in radians to degrees.
-
-    If the input is None, the it returns None.
-    For numerical input, the output is mapped to [-180,180]
-    """
-    if rad_angle is None :
-        return None
-    angle = rad_angle * 180 / np.pi
-    while angle > 180 :
-        angle = angle - 360
-    while angle < -180 :
-        angle = angle + 360
-    return angle
-
-
 #Defining the arguments:
 parser = argparse.ArgumentParser(description="Get the secondary structure from the phi and psi angles.")
 parser.add_argument("files", 
@@ -301,7 +281,7 @@ ramachandran_regions.add_argument("--customized_region", "-cr", default = False,
 
 stride2 = parser.add_argument_group("STRIDE", "The command that calls the external program STRIDE.")
 stride2.add_argument("--stride", "-st", default = False,
-    help = "The  PDB files directory to calculate the stride, followed by the desired structure: 'alpha' and/or 'beta'.")
+    help = "The path to STRIDE executable.")
 
 images_properties = parser.add_argument_group("Images properties","The commands to change the images properties.")
 images_properties.add_argument("--color_map", "-cm", dest='cm', default = "Blues",
@@ -369,11 +349,11 @@ else:
     weights = np.ones(all_data.shape[0])
 
 if not args.residues: args.residues = [0,all_data.shape[1]]
-else: args.residues = [args.residues[0]-2,args.residues[1]-1]
+else: args.residues = [args.residues[0]-2,args.residues[1]-2]
 if args.length:
     args.length[-1] += 1
 else: 
-    args.groups = [1,all_data.shape[1]+1]
+    args.length = [1,all_data.shape[1]+1]
 
 aminoacids = all_data.shape[1]
 if args.structure_definition == "blackledge"  : 
@@ -468,7 +448,7 @@ if args.hr:
         alpha_percentage = d_alpha/all_structure.shape[0]
     if figures:
         plt.figure()
-        plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1))
+        plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.length[0]:args.length[1]].sum(axis=1))
     #plt.title("% Alpha-helix", fontsize =12)
         plt.xlim(1,alpha_percentage.shape[0])
     if args.save_figure:
@@ -478,7 +458,7 @@ if args.hr:
         "-per-residue-%s"\
         %args.structure_definition,\
         alpha_percentage[args.residues[0]:args.residues[1], \
-        args.groups[0]:args.groups[1]].sum(axis=1))
+        args.length[0]:args.length[1]].sum(axis=1))
 
 if args.hg:
     try:
@@ -489,7 +469,7 @@ if args.hg:
         alpha_percentage = d_alpha/all_structure.shape[0]
     if figures:
         plt.figure()
-        plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=0))
+        plt.plot(alpha_percentage[args.residues[0]:args.residues[1], args.length[0]:args.length[1]].sum(axis=0))
         #plt.title("% Alpha-helix", fontsize =12)
         plt.xlim(1,alpha_percentage.shape[1])
     if args.save_figure:
@@ -499,7 +479,7 @@ if args.hg:
         "-per-length-%s"\
         %args.structure_definition,\
         alpha_percentage[args.residues[0]:args.residues[1], \
-        args.groups[0]:args.groups[1]].sum(axis=0))
+        args.length[0]:args.length[1]].sum(axis=0))
         
 if figures: plt.show()
 #else: args.txt = True
@@ -526,7 +506,7 @@ if args.txt and (args.stride or args.alpha or args.beta or args.polyproline or a
         np.savetxt(args.txt+"ss-map-polyproline-percentage%s-definition.txt"\
         %args.structure_definition,ppii_percentage,fmt = '%4f')
     if args.hr:
-        d_hr = alpha_percentage[args.residues[0]:args.residues[1], args.groups[0]:args.groups[1]].sum(axis=1)
+        d_hr = alpha_percentage[args.residues[0]:args.residues[1], args.length[0]:args.length[1]].sum(axis=1)
         np.savetxt(args.txt+"ss-map-helix-per-residue%s-definition.txt"\
         %args.structure_definition,d_hr,fmt = '%4f')
 elif args.txt and not (args.stride or args.alpha or args.beta or args.polyproline \
