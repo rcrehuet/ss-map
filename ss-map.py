@@ -212,7 +212,7 @@ def count(data, struct):
     for val, repetitions in groups:
         end = start + repetitions
         if val:
-            mat[start:end, end-start] = 1.
+            mat[start:end, repetitions] = 1.
         else:
             mat[start:end, 0] = 1.
         start = end
